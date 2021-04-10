@@ -1,0 +1,28 @@
+#!/usr/local/bin/python3
+import os
+import openai
+import json
+import sys
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+start_sequence = ""
+restart_sequence = "\nQ: "
+question = sys.argv[1]
+prompt="I am a command line translation tool. Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file?\ncp filename.txt destination_filename.txt\nQ: How do I duplicate a folder?\ncp -a foldername/ destination_folder/\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ: How do I figure out the running programs on my computer?\nps aux\nQ: How" + question + "\n"
+
+response = openai.Completion.create(
+  engine="davinci",
+  prompt=prompt,
+  temperature=0,
+  max_tokens=100,
+  top_p=1,
+  frequency_penalty=0,
+  presence_penalty=0,
+  stop=["\n"]
+)
+
+## print(response)
+jsonToPython = json.loads(response.last_response.body)
+print(jsonToPython['choices'][0]['text'])
+
