@@ -21,7 +21,12 @@ $> cbot "How do I set my email using git config?"
 The application is a simple Python script that prompts GPT3 with a couple examples and the OS of the current system. This helps ensure that Linux, Mac, and Windows specific commands tend to be more accurate.  Cbot is based entirely on GPT3 and it's not perfect. The more examples it has, the better it gets.  If you find examples that improve output or correct mistakes, please feel free to contribute them. 
 
 ## Installation
-The file needs to be placed in a directory that is accessible within your path. 
+First you need to add your GPT3 API key into an environmental variable. The easiest way to do this is to add to to your command line shell by adding the line:
+export OPENAI_API_KEY="then_enter_your_key"
+This is most commonly a file called .zshrc in your home directory.  The API key is something that you can get from: https://beta.openai.com/account/api-keyse
+
+
+Once the key is set you will want to copy the cbot.python file into adirectory that is accessible within your path. 
 
 $> cbot "What folders are in my path?"
 echo $PATH
@@ -37,5 +42,7 @@ $> cbot "How do I rename cbot.python to be just cbot?"
 mv cbot.python cbot
 
 
+# Advanced tricks...
 
+If you're feeling adventurous you can pass the command option -x to execute the command. Be careful as this will execute whatever is passed back from GPT3. Using this with simple things may be fine but this is not recommended with any actions that could be destructive.  
 

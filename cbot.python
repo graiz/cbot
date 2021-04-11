@@ -5,10 +5,21 @@ import json
 import sys
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
+# The recommended approach is to set the API_Key in an environmental
+# variable. If you don't want to set that up, you can uncomment this
+# line and add your key directly. 
+# openai.api_key = "st-key-goes-here"
+
 
 start_sequence = ""
 restart_sequence = "\nQ: "
-question = sys.argv[1]
+if sys.argv[1] == "-x" :
+    execute = True
+    question = sys.argv[2]
+else:
+    execute = False
+    question = sys.argv[1]
+
 prompt="I am a command line translation tool. Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file?\ncp filename.txt destination_filename.txt\nQ: How do I duplicate a folder?\ncp -a foldername/ destination_folder/\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ: How do I figure out the running programs on my computer?\nps aux\nQ: How" + question + "\n"
 
 response = openai.Completion.create(
@@ -22,7 +33,11 @@ response = openai.Completion.create(
   stop=["\n"]
 )
 
-## print(response)
 jsonToPython = json.loads(response.last_response.body)
-print(jsonToPython['choices'][0]['text'])
+result = jsonToPython['choices'][0]['text']
+if execute:
+    print("cbot executing:" + result) 
+    result = os.system(result)
+else:
+    print(result)
 
