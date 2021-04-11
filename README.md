@@ -18,7 +18,13 @@ $> cbot "How do I open php in interactive mode?"
 $> cbot "How do I set my email using git config?"
    git config --global user.email "new_email@address.com"
 
-$> cbot -x "What version of python am I using?"
+$> cbot What is the current date
+   date
+   _note: That you don't have to use quotes, however if you do this you can not include a question mark because the shell will try to match it with a file._
+
+$> cbot "How do I set my email using git config?"
+   git config --global user.email "new_email@address.com"
+
    cbot executing:python -V
    Python 3.8.2
 ```
