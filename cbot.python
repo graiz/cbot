@@ -42,7 +42,7 @@ prompt="I am a command line translation tool for "+ platform +". Ask me what you
 # be recreated on future runs. 
 cache = shelve.open(".cbot_cache") 
 
-if not(cache.get("question")):
+if not(cache.get(question)):
     response = openai.Completion.create(
             engine="davinci",
             prompt=prompt,
@@ -55,10 +55,10 @@ if not(cache.get("question")):
             )
     jsonToPython = json.loads(response.last_response.body)
     result = jsonToPython['choices'][0]['text']
-    cache["question"] = result
+    cache[question] = result
 else:
-    result = cache.get("question")
-    # print("cache hit")
+    result = cache.get(question)
+    print("💾 Cache Hit")
 
 cache.close()
 if execute:
