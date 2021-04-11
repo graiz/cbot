@@ -24,18 +24,26 @@ elif platform == "win32":
 else:
     platform = "Linux"
 
+#  Read the command line. There are several expected formats
+#  0    1    2    3  4   5
+# [cbot,-x,  What,is,the,date]  # execute the response
+# [cbot,What,is, the,date]      # no quotes will work
+# [cbot,What is the date]       # with quotes will work
 
+question = sys.argv[1]      # -x , What, What is...
 start_sequence = ""
 restart_sequence = "\nQ: "
-if sys.argv[1] == "-x" :
+if question == "-x" :
     execute = True
-    question = sys.argv[2]
+    question = sys.argv[2] 
+    for a in range(3,len(sys.argv)):
+        question = question + " " + sys.argv[a]
 else:
     execute = False
-    question = sys.argv[1]
+    for a in range(2,len(sys.argv)):
+        question = question + " " + sys.argv[a]
 
-prompt="I am a command line translation tool for "+ platform +". Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file?\ncp filename.txt destination_filename.txt\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ:" + question + "\n"
-
+prompt="I am a command line translation tool for "+ platform +". Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file\ncp filename.txt destination_filename.txt\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ:" + question + "\n"
 
 # We locally cache results to lower GPT3 costs and speed up answers
 # If we change our training/prompts, just delete the cache and it'll 
