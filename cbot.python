@@ -40,7 +40,9 @@ prompt="I am a command line translation tool for "+ platform +". Ask me what you
 # We locally cache results to lower GPT3 costs and speed up answers
 # If we change our training/prompts, just delete the cache and it'll 
 # be recreated on future runs. 
-cache = shelve.open(".cbot_cache") 
+from os.path import expanduser
+home = expanduser("~")
+cache = shelve.open(home + "/.cbot_cache") 
 
 if not(cache.get(question)):
     response = openai.Completion.create(
