@@ -20,13 +20,16 @@ $> cbot "How do I set my email using git config?"
 
 $> cbot What is the current date
    date
-   _note: That you don't have to use quotes, however if you do this you can not include a question mark because the shell will try to match it with a file._
+```
+Note: That you don't have to use quotes, however if you do
+   this you can not include a question mark because the shell
+   will try to match it with a file.
 
-$> cbot "How do I set my email using git config?"
-   git config --global user.email "new_email@address.com"
+Use the -x option to execute the command.
+```
+$> cbot -x How do I create a file test.txt
+   touch test.txt"
 
-   cbot executing:python -V
-   Python 3.8.2
 ```
 
 ## Cbot Basics
