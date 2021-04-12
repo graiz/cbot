@@ -34,18 +34,17 @@ The application is a simple Python script that prompts GPT3 with a couple exampl
 
 ## Installation
 
-- Clone this repo to your computer using the command line: 
-  $> git clone git@github.com:graiz/cbot.git
-
 - Add your GPT3 API key into an environmental variable. The easiest way to do this is to add to to your command line shell by adding the line:  export OPENAI_API_KEY="then_enter_your_key"
 This is most commonly a file called .zshrc or .bashrc in your home directory.  The API key is something that you can get from: https://beta.openai.com/account/api-keyse
 
-- Once the key is set you will want to copy the cbot.python file into a directory that is accessible within your path.  
-- It is recommended to rename it as just "cbot" without the python extension for simplicity and allow the file to be executed.
+- Clone this repo to your computer using the command line.
+- Allow the file to be executed and then copy the cbot.python file into a directory that is accessible within your path. It is recommended that you name it "cbot" without the python extension for simplicity. 
 - You will also need to make sure that python has the OpenAI mobule.  
 ```
+$> git clone git@github.com:graiz/cbot.git
+$> cd cbot
 $> chmod +x cbot.python
-$> mv cbot.python ~/bin/cbot
+$> mv cbot.python ~/bin/cbot      (you can use a different location in your $PATH)
 $> pip3 install openai
 ```
 ## Testing
@@ -56,7 +55,7 @@ If everything is working you should be able to run "cbot" from the command line 
 
 If you're feeling adventurous you can pass the command option **-x** to execute the command. Be careful as this will execute whatever is passed back from GPT3. Using this with simple things may be fine but this is not recommended with any actions that could be destructive.
 
-> **Note:** The **-x** option will go ahead and run the command returned without asking.  Proceed with caution.
+> **Note:** The **-x** option will go ahead and run the command returned without asking.  Proceed with caution, for added safety sudo commands will not be automatically run.
 
 
 #### Credits
