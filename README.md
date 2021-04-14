@@ -49,6 +49,7 @@ $> cd cbot
 $> chmod +x cbot.python
 $> mv cbot.python ~/bin/cbot      (you can use a different location in your $PATH)
 $> pip3 install openai
+$> pip3 install pyperclip    
 ```
 ## Testing
 

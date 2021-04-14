@@ -3,8 +3,8 @@ import os
 import openai
 import json
 import sys    
-import shelve 
-
+import sqlite3 
+import pyperclip
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 # The recommended approach is to set the API_Key in an environmental
@@ -15,47 +15,82 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # Detect the platform. This helps with platform specific paths
 # and system specific options for certain commands
 platform = sys.platform
-if platform == "linux" or platform == "linux2":
-    platform = "Linux"
-elif platform == "darwin":
+if platform == "darwin":
     platform = "Mac"
 elif platform == "win32":
     platform = "Windows"
 else:
     platform = "Linux"
 
-#  Read the command line. There are several expected formats
-#  0    1    2    3  4   5
+global question 
+question = ""
+
+
+# Read the command options
 # [cbot,-x,  What,is,the,date]  # execute the response
 # [cbot,What,is, the,date]      # no quotes will work
 # [cbot,What is the date]       # with quotes will work
 
-question = sys.argv[1]      # -x , What, What is...
-start_sequence = ""
-restart_sequence = "\nQ: "
-if question == "-x" :
-    execute = True
-    question = sys.argv[2] 
-    for a in range(3,len(sys.argv)):
-        question = question + " " + sys.argv[a]
-else:
-    execute = False
-    for a in range(2,len(sys.argv)):
+for a in range(1,len(sys.argv)):
         question = question + " " + sys.argv[a]
 
+
+# Read command line options
+execute = False
+clip = False
+
+if ("-x" in question):
+    execute = True
+    question = question.replace("-x ","") 
+   
+if ("-c" in question):
+    clip = True
+    question = question.replace("-c ","") 
+   
 if not("?" in question): 
-    question = question + "?"  # GPT produces better results if there's a question mark. Otherwise it may continue the sentence.
+    question = question + "?"  # GPT produces better results if there's a question mark.i
+                               # Otherwise it may continue the sentence.
+
+question = question.strip()
+
+def initDB():
+  global cache 
+  cache = sqlite3.connect(home + "/.cbot_cache") 
+  cache.execute("""
+                   CREATE TABLE IF NOT EXISTS questions 
+                   (id INTEGER PRIMARY KEY,
+                   question TEXT,
+                   answer TEXT,
+                   count INTEGER DEFAULT 1)""")
+def closeDB():
+    cache.commit()
+    cache.close()
+
+def checkQ(question_text):
+    answer = cache.execute("SELECT id,answer,count FROM questions WHERE question = ?", (question_text,))
+    answer = answer.fetchone()
+    if (answer) :
+        response = answer[1]
+        newcount = int(answer[2]) + 1
+        counter = cache.execute(" UPDATE questions SET count = ? WHERE id = ?", (newcount,answer[0]))
+        return(response)
+    else:
+        return(False)
+
+
+def insertQ(question_text,answer_text):
+    answer = cache.execute("INSERT INTO questions (question,answer) VALUES (?,?)", (question_text,answer_text))
+
 
 prompt="I am a command line translation tool for "+ platform +". Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file\ncp filename.txt destination_filename.txt\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ:" + question + "\n"
-
-# We locally cache results to lower GPT3 costs and speed up answers
 # If we change our training/prompts, just delete the cache and it'll 
 # be recreated on future runs. 
 from os.path import expanduser
 home = expanduser("~")
-cache = shelve.open(home + "/.cbot_cache") 
-
-if not(cache.get(question)):
+start_sequence = "\nQ: "
+initDB()
+cache_answer = checkQ(question)
+if not(cache_answer):
     response = openai.Completion.create(
             engine="davinci",
             prompt=prompt,
@@ -68,12 +103,14 @@ if not(cache.get(question)):
             )
     jsonToPython = json.loads(response.last_response.body)
     result = jsonToPython['choices'][0]['text']
-    cache[question] = result
+    insertQ(question, result) 
 else:
-    result = cache.get(question)
+    result = cache_answer 
     print("💾 Cache Hit")
 
-cache.close()
+if clip:
+    pyperclip.copy(result)
+
 if execute:
     print("cbot executing: " + result) 
     if ("sudo" in result):
@@ -83,3 +120,4 @@ if execute:
 else:
     print(result)
 
+closeDB()
