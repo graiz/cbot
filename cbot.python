@@ -12,47 +12,6 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # line and add your key directly. 
 # openai.api_key = "st-key-goes-here"
 
-# Detect the platform. This helps with platform specific paths
-# and system specific options for certain commands
-platform = sys.platform
-if platform == "darwin":
-    platform = "Mac"
-elif platform == "win32":
-    platform = "Windows"
-else:
-    platform = "Linux"
-
-global question 
-question = ""
-
-
-# Read the command options
-# [cbot,-x,  What,is,the,date]  # execute the response
-# [cbot,What,is, the,date]      # no quotes will work
-# [cbot,What is the date]       # with quotes will work
-
-for a in range(1,len(sys.argv)):
-        question = question + " " + sys.argv[a]
-
-
-# Read command line options
-execute = False
-clip = False
-
-if ("-x" in question):
-    execute = True
-    question = question.replace("-x ","") 
-   
-if ("-c" in question):
-    clip = True
-    question = question.replace("-c ","") 
-   
-if not("?" in question): 
-    question = question + "?"  # GPT produces better results if there's a question mark.i
-                               # Otherwise it may continue the sentence.
-
-question = question.strip()
-
 def initDB():
   global cache 
   cache = sqlite3.connect(home + "/.cbot_cache") 
@@ -79,19 +38,75 @@ def checkQ(question_text):
 
 
 def insertQ(question_text,answer_text):
+    answer = cache.execute("DELETE FROM questions WHERE question = ?",(question_text,))
     answer = cache.execute("INSERT INTO questions (question,answer) VALUES (?,?)", (question_text,answer_text))
 
 
-prompt="I am a command line translation tool for "+ platform +". Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file\ncp filename.txt destination_filename.txt\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ:" + question + "\n"
+# Detect the platform. This helps with platform specific paths
+# and system specific options for certain commands
+platform = sys.platform
+if platform == "darwin":
+    platform = "Mac"
+elif platform == "win32":
+    platform = "Windows"
+else:
+    platform = "Linux"
+
+global question
+global shortcut
+question = ""
+shortcut = False
+
+# Read the command options
+# [cbot,-x,  What,is,the,date]  # execute the response
+# [cbot,What,is, the,date]      # no quotes will work
+# [cbot,What is the date]       # with quotes will work
+
+for a in range(1,len(sys.argv)):
+        question = question + " " + sys.argv[a]
+
+
+# Read command line options
+execute = False
+clip = False
+
+if ("-x" in question):      # Execute the command
+    execute = True
+    question = question.replace("-x ","") 
+   
+if ("-c" in question):      # Copy the command to clipboard
+    clip = True
+    question = question.replace("-c ","") 
+
+if ("-s" in question):         # Save the command as a shortcut  
+    question=sys.argv[2]
+    shortcut = sys.argv[3]
+
+question = question.strip()
+
 # If we change our training/prompts, just delete the cache and it'll 
 # be recreated on future runs. 
 from os.path import expanduser
 home = expanduser("~")
 start_sequence = "\nQ: "
 initDB()
-cache_answer = checkQ(question)
-if not(cache_answer):
-    response = openai.Completion.create(
+
+#check if we're saving a shortcut
+#then check if there's an aswer in our cache
+#then execute a GPT3 request as needed
+
+if (shortcut):
+    insertQ(question,shortcut)
+    print("Saving Shortcut:" + question + " Will return:" +shortcut)
+    cache_answer = False 
+else:
+    cache_answer = checkQ(question)
+
+if not(cache_answer) and not(shortcut):
+    if not("?" in question):
+        question = question + "?"  # GPT produces better results if there's a question mark.
+        prompt="I am a command line translation tool for "+ platform +". Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file\ncp filename.txt destination_filename.txt\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ:" + question + "\n"
+        response = openai.Completion.create(
             engine="davinci",
             prompt=prompt,
             temperature=0,
@@ -106,11 +121,11 @@ if not(cache_answer):
     insertQ(question, result) 
 else:
     result = cache_answer 
-    print("💾 Cache Hit")
+    if not(shortcut):
+        print("💾 Cache Hit")
 
 if clip:
     pyperclip.copy(result)
-
 if execute:
     print("cbot executing: " + result) 
     if ("sudo" in result):
@@ -118,6 +133,7 @@ if execute:
     else:
         result = os.system(result)
 else:
-    print(result)
+    if not(shortcut):
+        print(result)
 
 closeDB()

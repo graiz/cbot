@@ -61,6 +61,18 @@ If you're feeling adventurous you can pass the command option **-x** to execute 
 
 > **Note:** The **-x** option will go ahead and run the command returned without asking.  Proceed with caution, for added safety sudo commands will not be automatically run.
 
+You can also call cbot with a **-s** option. This will save any command as a shortcut with whatever name you choose. The first parameter is the name of the command and the second is the command itself in quotes. 
+```
+$> cbot -s nap "pmset sleepnow"
+   Saving shortcut nap, will return: pmset sleepnow
+$> cbot -x nap
+   Sleeping now...
+```
+
+To copy a command directly into the clipboard use the **-c** option. Can be useful if you want to execute the command but you don't trust cbot to do so automatically. 
+
+
+Cbot saves every command in a SQLite3 database located in the home directory .cbot_cache. You can inspect or delete this directory, you can also directly add or remove shortcuts if needed.
 
 #### Credits
 ----
