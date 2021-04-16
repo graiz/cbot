@@ -1,0 +1,8 @@
+Use this file to add corrections for prompts that don't work. This can later be used as a test script for improving prompts or for fine-tuning the prompt to better respond to examples. 
+
+Format: question,expected
+
+"how do I get the source of a webpage","curl -s http://www.example.com/"
+"how do I convert a .mov to .mp4?","ffmpeg -i source.mov -vcodec h264 -acodec mp2 destination.mp4"
+
+
