@@ -105,8 +105,9 @@ else:
 if not(cache_answer) and not(shortcut):
     if not("?" in question):
         question = question + "?"  # GPT produces better results if there's a question mark.
-        prompt="I am a command line translation tool for "+ platform +". Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file\ncp filename.txt destination_filename.txt\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ:" + question + "\n"
-        response = openai.Completion.create(
+    
+    prompt="I am a command line translation tool for "+ platform +". Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file\ncp filename.txt destination_filename.txt\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ:" + question + "\n"
+    response = openai.Completion.create(
             engine="davinci",
             prompt=prompt,
             temperature=0,
