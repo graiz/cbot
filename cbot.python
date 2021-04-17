@@ -26,9 +26,10 @@ def closeDB():
     cache.close()
 
 def checkQ(question_text):
+    sql = "SELECT id,answer,count FROM questions WHERE question =" + question_text
     answer = cache.execute("SELECT id,answer,count FROM questions WHERE question = ?", (question_text,))
     answer = answer.fetchone()
-    if (answer) :
+    if (answer):
         response = answer[1]
         newcount = int(answer[2]) + 1
         counter = cache.execute(" UPDATE questions SET count = ? WHERE id = ?", (newcount,answer[0]))
@@ -95,18 +96,36 @@ initDB()
 #then check if there's an aswer in our cache
 #then execute a GPT3 request as needed
 
+
+
+if not("?" in question):
+    question = question + "?"  # GPT produces better results if there's a question mark.
+
 if (shortcut):
     insertQ(question,shortcut)
-    print("Saving Shortcut:" + question + " Will return:" +shortcut)
+    print("Saving Shortcut")
     cache_answer = False 
 else:
-    cache_answer = checkQ(question)
+    cache_answer = checkQ(question)   
 
 if not(cache_answer) and not(shortcut):
-    if not("?" in question):
-        question = question + "?"  # GPT produces better results if there's a question mark.
-    
-    prompt="I am a command line translation tool for "+ platform +". Ask me what you want to do and I will tell you how to do it in a unix command. \nQ: How do I copy a file\ncp filename.txt destination_filename.txt\nQ: How do display a calendar?\ncal\nQ: How do I find files that contain the word \"test\"?\ngrep -i test *\nQ:" + question + "\n"
+    prompt="I am a command line translation tool for "+ platform +"."
+    prompt = prompt + """
+Ask me what you want to do and I will tell you how to do it in a unix command.
+Q: How do I copy a file
+cp filename.txt destination_filename.txt
+Q: How do I duplicate a folder?
+cp -a source_folder/ destination_folder/
+Q: How do display a calendar?
+cal
+Q: how do I convert a .heic file to jpg?
+convert source.heic destination.jpg
+Q: navigate to my desktop
+cd ~/Desktop/
+Q: How do I shutdown the computer?
+sudo shutdown -h now
+"""
+    prompt = prompt + "Q: " + question + "\n" 
     response = openai.Completion.create(
             engine="davinci",
             prompt=prompt,
