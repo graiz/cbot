@@ -4,5 +4,5 @@ Format: question,expected
 
 "how do I get the source of a webpage","curl -s http://www.example.com/"
 "how do I convert a .mov to .mp4?","ffmpeg -i source.mov -vcodec h264 -acodec mp2 destination.mp4"
-
+"how do I convert how do I convert a .heic file to .jpg?","convert source.heic destination.jpg",
 

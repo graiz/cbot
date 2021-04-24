@@ -12,6 +12,9 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 # line and add your key directly. 
 # openai.api_key = "st-key-goes-here"
 
+global question
+question = ""
+
 def initDB():
   global cache 
   cache = sqlite3.connect(home + "/.cbot_cache") 
@@ -37,10 +40,58 @@ def checkQ(question_text):
     else:
         return(False)
 
-
 def insertQ(question_text,answer_text):
     answer = cache.execute("DELETE FROM questions WHERE question = ?",(question_text,))
     answer = cache.execute("INSERT INTO questions (question,answer) VALUES (?,?)", (question_text,answer_text))
+
+def fetchQ():
+    question = ""
+    # [cbot,-x,  What,is,the,date]  # execute the response
+    # [cbot,What,is, the,date]      # no quotes will work
+    # [cbot,What is the date]       # with quotes will work
+    for a in range(1,len(sys.argv)):
+        question = question + " " + sys.argv[a]
+    question = question.strip()
+    return question
+
+def parseOptions(question):
+    global question_mode    # modes are normal, shortcut and general
+    global general_q
+    global execute
+    global clip
+    execute = False
+    clip = False
+    question_mode = "normal"
+    if ("-h" in question) or (question == " "):  # Return basic help info    
+        print("Cbot is a simple utility powered by GPT3")
+        print("""
+        Example usage:
+        cbot how do I copy files to my home directory
+        cbot "How do I put my computer to sleep
+        cbot -c "how do I install homebrew?"      (copies the result to clipboard)
+        cbot -x what is the date                  (executes the result)
+        cbot -g who was the 22nd president        (runs in general question mode)
+        """)
+        exit()
+
+    if ("-x" in question):      # Execute the command
+        execute = True
+        question = question.replace("-x ","") 
+
+    if ("-c" in question):      # Copy the command to clipboard
+        clip = True
+        question = question.replace("-c ","") 
+
+    if ("-g" in question):      # General question, not command prompt specific 
+        question_mode = "general"
+        question = question.replace("-g ","") 
+
+    if ("-s" in question):         # Save the command as a shortcut  
+        question_mode = "shortcut"
+        question=sys.argv[2]
+        shortcut = sys.argv[3]
+
+    return(question)
 
 
 # Detect the platform. This helps with platform specific paths
@@ -53,62 +104,27 @@ elif platform == "win32":
 else:
     platform = "Linux"
 
-global question
-global shortcut
-question = ""
-shortcut = False
-
-# Read the command options
-# [cbot,-x,  What,is,the,date]  # execute the response
-# [cbot,What,is, the,date]      # no quotes will work
-# [cbot,What is the date]       # with quotes will work
-
-for a in range(1,len(sys.argv)):
-        question = question + " " + sys.argv[a]
-
-
-# Read command line options
-execute = False
-clip = False
-
-if ("-x" in question):      # Execute the command
-    execute = True
-    question = question.replace("-x ","") 
-   
-if ("-c" in question):      # Copy the command to clipboard
-    clip = True
-    question = question.replace("-c ","") 
-
-if ("-s" in question):         # Save the command as a shortcut  
-    question=sys.argv[2]
-    shortcut = sys.argv[3]
-
-question = question.strip()
+question = fetchQ()
+question = parseOptions(question)
 
 # If we change our training/prompts, just delete the cache and it'll 
 # be recreated on future runs. 
 from os.path import expanduser
 home = expanduser("~")
-start_sequence = "\nQ: "
 initDB()
 
 #check if we're saving a shortcut
 #then check if there's an aswer in our cache
 #then execute a GPT3 request as needed
 
-
-
-if not("?" in question):
-    question = question + "?"  # GPT produces better results if there's a question mark.
-
-if (shortcut):
+if (question_mode == "shortcut"):
     insertQ(question,shortcut)
     print("Saving Shortcut")
     cache_answer = False 
 else:
     cache_answer = checkQ(question)   
 
-if not(cache_answer) and not(shortcut):
+if not(cache_answer) and ((question_mode == "general") or (question_mode == "normal")):
     prompt="I am a command line translation tool for "+ platform +"."
     prompt = prompt + """
 Ask me what you want to do and I will tell you how to do it in a unix command.
@@ -125,7 +141,14 @@ cd ~/Desktop/
 Q: How do I shutdown the computer?
 sudo shutdown -h now
 """
-    prompt = prompt + "Q: " + question + "\n" 
+    if (question_mode == "general"):     #Alternate prompt for general Q's 
+        prompt="Q: Who is Batman?\nBatman is a fictional comic book character.\nQ: What is torsalplexity?\nUnknown\nQ: What is Devz9?\nUnknown\nQ: What is the capital of California?\nSacramento.\nQ: How do you add a comment to a shell script?\nTo add a comment make sure the line starts with a #\nQ: How do I go to the first line using vim\nThe command gg or :1 will go to the first line\nQ: What is Kozar-09?\nUnknown\nQ: What keyboard shortcut cycles tabs in chrome?\nControl+Tab will cycle to the next tab and Shift+Control+Tab will cycle to the previous tab\n"
+
+    if not("?" in question):
+        temp_question = question + "?"  # GPT produces better results 
+                                        # if there's a question mark.
+                                        # using a temp variable so ? doesn't get cached
+    prompt = prompt + "Q: " + temp_question + "\n" 
     response = openai.Completion.create(
             engine="davinci",
             prompt=prompt,
@@ -141,7 +164,7 @@ sudo shutdown -h now
     insertQ(question, result) 
 else:
     result = cache_answer 
-    if not(shortcut):
+    if not(question_mode == "shortcut"):
         print("💾 Cache Hit")
 
 if clip:
@@ -153,7 +176,7 @@ if execute:
     else:
         result = os.system(result)
 else:
-    if not(shortcut):
+    if not(question_mode == "shortcut"):
         print(result)
 
 closeDB()
