@@ -71,7 +71,14 @@ $> cbot -x nap
 
 To copy a command directly into the clipboard use the **-c** option. Can be useful if you want to execute the command but you don't trust cbot to do so automatically. 
 
-Cbot has a -g option to ask general questions. The results when you ask a general question will not be result in command line syle results. This is useful for asking general unix questions. Historical facts or other general questions. 
+Cbot has a -g option to ask general questions. The results when you ask a general question will not be formated as a command line. This is useful for asking general questions, historical facts or other information not likely to be formated as a command. 
+```
+$> cbot -g "Who was the 23rd president?"
+  Herbert Hoover  
+$> cbot -g "What is the meaning of life?"p
+   42
+```
+
 
 Cbot saves every command in a SQLite3 database located in the home directory .cbot_cache. You can inspect or delete this directory, you can also directly add or remove shortcuts if needed.
 
