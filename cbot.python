@@ -59,6 +59,8 @@ def parseOptions(question):
     global general_q
     global execute
     global clip
+    global shortcut
+    shortcut = ""
     execute = False
     clip = False
     question_mode = "normal"
