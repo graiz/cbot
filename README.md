@@ -46,8 +46,8 @@ This is most commonly a file called .zshrc or .bashrc in your home directory.  T
 ```
 $> git clone git@github.com:graiz/cbot.git
 $> cd cbot
-$> chmod +x cbot.python
-$> mv cbot.python ~/bin/cbot      (you can use a different location in your $PATH)
+$> chmod +x cbot.py
+$> mv cbot.py ~/bin/cbot      (you can use a different location in your $PATH)
 $> pip3 install openai
 $> pip3 install pyperclip    
 ```
