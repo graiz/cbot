@@ -161,8 +161,7 @@ sudo shutdown -h now
             presence_penalty=0,
             stop=["\n"]
             )
-    jsonToPython = json.loads(response.last_response.body)
-    result = jsonToPython['choices'][0]['text']
+    result = response['choices'][0]['text']
     insertQ(question, result) 
 else:
     result = cache_answer 
