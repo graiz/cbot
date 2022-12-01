@@ -5,6 +5,9 @@ import json
 import sys    
 import sqlite3 
 import pyperclip
+from dotenv import load_dotenv
+
+load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 # The recommended approach is to set the API_Key in an environmental
@@ -152,7 +155,7 @@ sudo shutdown -h now
                                         # using a temp variable so the ? doesn't get cached
     prompt = prompt + "Q: " + temp_question + "\n" 
     response = openai.Completion.create(
-            engine="davinci",
+            model="text-davinci-003",
             prompt=prompt,
             temperature=0,
             max_tokens=100,
@@ -161,8 +164,9 @@ sudo shutdown -h now
             presence_penalty=0,
             stop=["\n"]
             )
-    jsonToPython = json.loads(response.last_response.body)
-    result = jsonToPython['choices'][0]['text']
+    result = response.choices[0].text
+    # jsonToPython = json.loads(response)
+    # result = jsonToPython['choices'][0]['text']
     insertQ(question, result) 
 else:
     result = cache_answer 
