@@ -152,7 +152,7 @@ sudo shutdown -h now
                                         # using a temp variable so the ? doesn't get cached
     prompt = prompt + "Q: " + temp_question + "\n" 
     response = openai.Completion.create(
-            engine="davinci",
+            model="text-davinci-003",
             prompt=prompt,
             temperature=0,
             max_tokens=100,
