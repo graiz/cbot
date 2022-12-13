@@ -6,24 +6,18 @@ import sys
 import sqlite3 
 import pyperclip
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
-# The recommended approach is to set the API_Key in an environmental
-# variable. If you don't want to set that up, you can uncomment this
-# line and add your key directly. 
-# openai.api_key = "st-key-goes-here"
-
-global question
-question = ""
 
 def initDB():
-  global cache 
-  cache = sqlite3.connect(home + "/.cbot_cache") 
-  cache.execute("""
-                   CREATE TABLE IF NOT EXISTS questions 
-                   (id INTEGER PRIMARY KEY,
-                   question TEXT,
-                   answer TEXT,
-                   count INTEGER DEFAULT 1)""")
+    from os.path import expanduser
+    home = expanduser("~")
+    global cache 
+    cache = sqlite3.connect(home + "/.cbot_cache") 
+    cache.execute("""
+                    CREATE TABLE IF NOT EXISTS questions 
+                    (id INTEGER PRIMARY KEY,
+                    question TEXT,
+                    answer TEXT,
+                    count INTEGER DEFAULT 1)""")
 def closeDB():
     cache.commit()
     cache.close()
@@ -95,89 +89,108 @@ def parseOptions(question):
 
     return(question)
 
+def main():
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    # The recommended approach is to set the API_Key in an environmental
+    # variable. If you don't want to set that up, you can uncomment this
+    # line and add your key directly. 
+    # openai.api_key = "st-key-goes-here"
 
-# Detect the platform. This helps with platform specific paths
-# and system specific options for certain commands
-platform = sys.platform
-if platform == "darwin":
-    platform = "Mac"
-elif platform == "win32":
-    platform = "Windows"
-else:
-    platform = "Linux"
+    # Check if the api key is not set and throw an errorand exit if not
+    if (openai.api_key is None):
+        print("Please set your OpenAI API key as an environmental variable")
+        print("Learn more at https://beta.openai.com/account/api-keys")
+        print("To set the environment variable, run: export OPENAI_API_KEY=st-your-key")
+        exit()
 
-question = fetchQ()
-question = parseOptions(question)
 
-# If we change our training/prompts, just delete the cache and it'll 
-# be recreated on future runs. 
-from os.path import expanduser
-home = expanduser("~")
-initDB()
+    global question
+    question = ""
 
-#check if we're saving a shortcut
-#then check if there's an aswer in our cache
-#then execute a GPT3 request as needed
-
-if (question_mode == "shortcut"):
-    insertQ(question,shortcut)
-    print("Saving Shortcut")
-    cache_answer = False 
-else:
-    cache_answer = checkQ(question)   
-
-if not(cache_answer) and ((question_mode == "general") or (question_mode == "normal")):
-    prompt="I am a command line translation tool for "+ platform +"."
-    prompt = prompt + """
-Ask me what you want to do and I will tell you how to do it in a unix command.
-Q: How do I copy a file
-cp filename.txt destination_filename.txt
-Q: How do I duplicate a folder?
-cp -a source_folder/ destination_folder/
-Q: How do display a calendar?
-cal
-Q: how do I convert a .heic file to jpg?
-convert source.heic destination.jpg
-Q: navigate to my desktop
-cd ~/Desktop/
-Q: How do I shutdown the computer?
-sudo shutdown -h now
-"""
-    if (question_mode == "general"):     #Alternate prompt for general Q's 
-        prompt="Q: Who is Batman?\nBatman is a fictional comic book character.\nQ: What is torsalplexity?\nUnknown\nQ: What is Devz9?\nUnknown\nQ: What is the capital of California?\nSacramento.\nQ: How do you add a comment to a shell script?\nTo add a comment make sure the line starts with a #\nQ: How do I go to the first line using vim\nThe command gg or :1 will go to the first line\nQ: What is Kozar-09?\nUnknown\nQ: What keyboard shortcut cycles tabs in chrome?\nControl+Tab will cycle to the next tab and Shift+Control+Tab will cycle to the previous tab\n"
-    temp_question = question
-    if not("?" in question):
-        temp_question = question + "?"  # GPT produces better results 
-                                        # if there's a question mark.
-                                        # using a temp variable so the ? doesn't get cached
-    prompt = prompt + "Q: " + temp_question + "\n" 
-    response = openai.Completion.create(
-            model="text-davinci-003",
-            prompt=prompt,
-            temperature=0,
-            max_tokens=100,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=["\n"]
-            )
-    result = response['choices'][0]['text']
-    insertQ(question, result) 
-else:
-    result = cache_answer 
-    if not(question_mode == "shortcut"):
-        print("💾 Cache Hit")
-
-if clip:
-    pyperclip.copy(result)
-if execute:
-    print("cbot executing: " + result) 
-    if ("sudo" in result):
-        print("Execution canceled, cbot will not execute sudo commands.")
+    # Detect the platform. This helps with platform specific paths
+    # and system specific options for certain commands
+    platform = sys.platform
+    if platform == "darwin":
+        platform = "Mac"
+    elif platform == "win32":
+        platform = "Windows"
     else:
-        result = os.system(result)
-else:
-    if not(question_mode == "shortcut"):
-        print(result)
+        platform = "Linux"
 
-closeDB()
+    question = fetchQ()
+    question = parseOptions(question)
+
+    # If we change our training/prompts, just delete the cache and it'll 
+    # be recreated on future runs. 
+   
+    initDB()
+
+    #check if we're saving a shortcut
+    #then check if there's an aswer in our cache
+    #then execute a GPT3 request as needed
+
+    if (question_mode == "shortcut"):
+        insertQ(question,shortcut)
+        print("Saving Shortcut")
+        cache_answer = False 
+    else:
+        cache_answer = checkQ(question)   
+
+    if not(cache_answer) and ((question_mode == "general") or (question_mode == "normal")):
+        prompt="I am a command line translation tool for "+ platform +"."
+        prompt = prompt + """
+    Ask me what you want to do and I will tell you how to do it in a unix command.
+    Q: How do I copy a file
+    cp filename.txt destination_filename.txt
+    Q: How do I duplicate a folder?
+    cp -a source_folder/ destination_folder/
+    Q: How do display a calendar?
+    cal
+    Q: how do I convert a .heic file to jpg?
+    convert source.heic destination.jpg
+    Q: navigate to my desktop
+    cd ~/Desktop/
+    Q: How do I shutdown the computer?
+    sudo shutdown -h now
+    """
+        if (question_mode == "general"):     #Alternate prompt for general Q's 
+            prompt="Q: Who is Batman?\nBatman is a fictional comic book character.\nQ: What is torsalplexity?\nUnknown\nQ: What is Devz9?\nUnknown\nQ: What is the capital of California?\nSacramento.\nQ: How do you add a comment to a shell script?\nTo add a comment make sure the line starts with a #\nQ: How do I go to the first line using vim\nThe command gg or :1 will go to the first line\nQ: What is Kozar-09?\nUnknown\nQ: What keyboard shortcut cycles tabs in chrome?\nControl+Tab will cycle to the next tab and Shift+Control+Tab will cycle to the previous tab\n"
+        temp_question = question
+        if not("?" in question):
+            temp_question = question + "?"  # GPT produces better results 
+                                            # if there's a question mark.
+                                            # using a temp variable so the ? doesn't get cached
+        prompt = prompt + "Q: " + temp_question + "\n" 
+        response = openai.Completion.create(
+                model="text-davinci-003",
+                prompt=prompt,
+                temperature=0,
+                max_tokens=100,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=["\n"]
+                )
+        result = response['choices'][0]['text']
+        insertQ(question, result) 
+    else:
+        result = cache_answer 
+        if not(question_mode == "shortcut"):
+            print("💾 Cache Hit")
+
+    if clip:
+        pyperclip.copy(result)
+    if execute:
+        print("cbot executing: " + result) 
+        if ("sudo" in result):
+            print("Execution canceled, cbot will not execute sudo commands.")
+        else:
+            result = os.system(result)
+    else:
+        if not(question_mode == "shortcut"):
+            print(result)
+
+    closeDB()
+
+if __name__ == "__main__":
+    sys.exit(main())

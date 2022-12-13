@@ -38,18 +38,12 @@ The application is a simple Python script that prompts GPT3 with a couple exampl
 ## Installation
 
 - Add your GPT3 API key into an environmental variable. The easiest way to do this is to add to to your command line shell by adding the line:  export OPENAI_API_KEY="then_enter_your_key"
-This is most commonly a file called .zshrc or .bashrc in your home directory.  The API key is something that you can get from: https://beta.openai.com/account/api-keyse
+This is most commonly a file called .zshrc or .bashrc in your home directory.  The API key is something that you can get from: https://beta.openai.com/account/api-keys
 
-- Clone this repo to your computer using the command line.
-- Allow the file to be executed and then copy the cbot.python file into a directory that is accessible within your path. It is recommended that you name it "cbot" without the python extension for simplicity. 
-- You will also need to make sure that python has the OpenAI mobule.  
+
 ```
-$> git clone git@github.com:graiz/cbot.git
-$> cd cbot
-$> chmod +x cbot.py
-$> mv cbot.py ~/bin/cbot      (you can use a different location in your $PATH)
-$> pip3 install openai
-$> pip3 install pyperclip    
+$> pip install cbot-command
+$> cbot "How do I list all files?"    
 ```
 ## Testing
 
