@@ -1,5 +1,17 @@
 # cbot
-Cbot is a simple python command line bot based on GPT3. The bot will lookup what the right command line is for natural questions that you ask. A GPT3 API key is required for this to work. 
+Cbot is a command line tool that uses GPT-3 to assist users in finding the right command for any given task. With cbot, users can simply type in a brief description of what they want to do, and cbot will use GPT-3 to find the right command to accomplish the task. Cbot makes it easy for users to find the right command quickly, without having to spend time searching through documentation or scrolling through long lists of available commands.
+
+
+
+## Installation
+
+To install the cbot utility and set up your GPT-3 API key, follow these steps:
+1. Install cbot using the pip command: **pip install cbot-command**
+1. Get your GPT-3 API key from https://beta.openai.com/account/api-keys Add your API key to an environmental variable by running the following command, replacing your actual API key: **export OPENAI_API_KEY="YOUR_API_KEY"**
+1. If you're using the Bash shell, you can add the above export command to your .bashrc file in your home directory so that it is automatically run every time you open a new terminal. If you're using the Zsh shell, you can add it to your .zshrc file instead.
+
+Once you've completed these steps, cbot will be installed and ready to use. You can run the **cbot "search"** command to search for commands related to a particular topic.
+
 
 ## Example usage:
 ```
@@ -34,20 +46,6 @@ $> cbot -x How do I create a file test.txt
 
 ## Cbot Basics
 The application is a simple Python script that prompts GPT3 with a couple examples and the OS of the current system. This helps ensure that Linux, Mac, and Windows specific commands tend to be more accurate.  Cbot is based entirely on GPT3 and it's not perfect. The more examples it has, the better it gets however the more examples the more GPT3 may cost per request. If you find examples that improve output or correct mistakes, please feel free to contribute them. Future versions of GPT3 will allow training and fine tuning. 
-
-## Installation
-
-- Add your GPT3 API key into an environmental variable. The easiest way to do this is to add to to your command line shell by adding the line:  export OPENAI_API_KEY="then_enter_your_key"
-This is most commonly a file called .zshrc or .bashrc in your home directory.  The API key is something that you can get from: https://beta.openai.com/account/api-keys
-
-
-```
-$> pip install cbot-command
-$> cbot "How do I list all files?"    
-```
-## Testing
-
-If everything is working you should be able to run "cbot" from the command line with a question and it'll return an answer.
 
 # Advanced tricks...
 
