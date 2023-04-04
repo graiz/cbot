@@ -155,19 +155,16 @@ if not(cache_answer) and ((question_mode == "general") or (question_mode == "nor
         # if there's a question mark.
         # using a temp variable so the ? doesn't get cached
     prompt += [{"role": "user", "content": temp_question}]
-    # prompt = prompt.append({"role": "user", "content": temp_question})
-    # prompt = prompt.append({"Q: " + temp_question + "\n"})
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=prompt,
         temperature=0,
-        max_tokens=100,
+        max_tokens=500,
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0,
         stop=["\n"]
     )
-    # result = response.choices[0].message
     result = response.choices[0].message["content"]
     insertQ(question, result)
 else:

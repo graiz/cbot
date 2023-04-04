@@ -1,5 +1,5 @@
 # cbot
-Cbot is a simple python command line bot based on GPT3. The bot will lookup what the right command line is for natural questions that you ask. A GPT3 API key is required for this to work. 
+Cbot is a simple python command line bot that uses the gpt-3.5-turbo endpoint from OpenAI. The bot will lookup what the right command line is for natural questions that you ask. An OpenAI API key is required for this to work. 
 
 ## Example usage:
 ```
@@ -33,11 +33,11 @@ $> cbot -x How do I create a file test.txt
 ```
 
 ## Cbot Basics
-The application is a simple Python script that prompts GPT3 with a couple examples and the OS of the current system. This helps ensure that Linux, Mac, and Windows specific commands tend to be more accurate.  Cbot is based entirely on GPT3 and it's not perfect. The more examples it has, the better it gets however the more examples the more GPT3 may cost per request. If you find examples that improve output or correct mistakes, please feel free to contribute them. Future versions of GPT3 will allow training and fine tuning. 
+The application is a simple Python script that prompts GPT3.5 with a system message and the OS of the current system. This helps ensure that Linux, Mac, and Windows specific commands tend to be more accurate.  Cbot is based entirely on GPT3.5 and it's not perfect. Currently cbot does not have a context for it's responses, so each response cannot reference previous responses. 
 
 ## Installation
 
-- Add your GPT3 API key into an environmental variable. The easiest way to do this is to add to to your command line shell by adding the line:  export OPENAI_API_KEY="then_enter_your_key"
+- Add your OpenAI API key into an environmental variable. The easiest way to do this is to add to to your command line shell by adding the line:  export OPENAI_API_KEY="then_enter_your_key"
 This is most commonly a file called .zshrc or .bashrc in your home directory.  The API key is something that you can get from: https://beta.openai.com/account/api-keyse
 
 - Clone this repo to your computer using the command line.
@@ -86,5 +86,6 @@ Cbot saves every command in a SQLite3 database located in the home directory .cb
 
 #### Credits
 ----
+Current version by Roberto Delgado
 Initial version by Gregory Raiz
 This code is free to use under the MIT liscense.
