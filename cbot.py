@@ -141,33 +141,25 @@ else:
     cache_answer = checkQ(question)
 
 if not(cache_answer) and ((question_mode == "general") or (question_mode == "normal")):
-    prompt = "I am a command line translation tool for " + platform + "."
-    prompt = prompt + """
-Ask me what you want to do and I will tell you how to do it in a unix command.
-Q: How do I copy a file
-cp filename.txt destination_filename.txt
-Q: How do I duplicate a folder?
-cp -a source_folder/ destination_folder/
-Q: How do display a calendar?
-cal
-Q: how do I convert a .heic file to jpg?
-convert source.heic destination.jpg
-Q: navigate to my desktop
-cd ~/Desktop/
-Q: How do I shutdown the computer?
-sudo shutdown -h now
-"""
+    prompt = [
+        {"role": "system", "content": "You are a command line translation tool for " +
+            platform + "." "You will answer the user's question with the correct unix command."},
+    ]
     if (question_mode == "general"):  # Alternate prompt for general Q's
-        prompt = "Q: Who is Batman?\nBatman is a fictional comic book character.\nQ: What is torsalplexity?\nUnknown\nQ: What is Devz9?\nUnknown\nQ: What is the capital of California?\nSacramento.\nQ: How do you add a comment to a shell script?\nTo add a comment make sure the line starts with a #\nQ: How do I go to the first line using vim\nThe command gg or :1 will go to the first line\nQ: What is Kozar-09?\nUnknown\nQ: What keyboard shortcut cycles tabs in chrome?\nControl+Tab will cycle to the next tab and Shift+Control+Tab will cycle to the previous tab\n"
+        prompt = [
+            {"role": "system", "content": "You are a helpful assistant. Answer the user's question in the best way possible."},
+        ]
     temp_question = question
     if not("?" in question):
         temp_question = question + "?"  # GPT produces better results
         # if there's a question mark.
         # using a temp variable so the ? doesn't get cached
-    prompt = prompt + "Q: " + temp_question + "\n"
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
+    prompt += [{"role": "user", "content": temp_question}]
+    # prompt = prompt.append({"role": "user", "content": temp_question})
+    # prompt = prompt.append({"Q: " + temp_question + "\n"})
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=prompt,
         temperature=0,
         max_tokens=100,
         top_p=1,
@@ -175,7 +167,8 @@ sudo shutdown -h now
         presence_penalty=0,
         stop=["\n"]
     )
-    result = response.choices[0].text
+    # result = response.choices[0].message
+    result = response.choices[0].message["content"]
     insertQ(question, result)
 else:
     result = cache_answer
