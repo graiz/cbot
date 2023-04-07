@@ -28,7 +28,15 @@ def initDB():
                    (id INTEGER PRIMARY KEY,
                    question TEXT,
                    answer TEXT,
-                   count INTEGER DEFAULT 1)""")
+                   count INTEGER DEFAULT 1,
+                   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)""")  # Add timestamp column
+
+    # Create conversations table
+    cache.execute("""
+                   CREATE TABLE IF NOT EXISTS conversations 
+                   (id INTEGER PRIMARY KEY,
+                   messages TEXT,
+                   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)""")
 
 
 def closeDB():
@@ -56,6 +64,12 @@ def insertQ(question_text, answer_text):
         "DELETE FROM questions WHERE question = ?", (question_text,))
     answer = cache.execute(
         "INSERT INTO questions (question,answer) VALUES (?,?)", (question_text, answer_text))
+
+    # Insert message history into conversations table
+    messages = [{"role": "user", "content": question_text},
+                {"role": "assistant", "content": answer_text}]
+    cache.execute(
+        "INSERT INTO conversations (messages) VALUES (?)", (json.dumps(messages),))
 
 
 def fetchQ():
@@ -111,6 +125,19 @@ def parseOptions(question):
     return(question)
 
 
+def fetch_previous_prompts():
+    prompts = cache.execute(
+        "SELECT messages FROM conversations ORDER BY timestamp DESC LIMIT 10"
+    ).fetchall()
+    previous_prompts = []
+
+    for prompt in prompts:
+        messages = json.loads(prompt[0])
+        previous_prompts.extend(messages)
+
+    return previous_prompts
+
+
 # Detect the platform. This helps with platform specific paths
 # and system specific options for certain commands
 platform = sys.platform
@@ -142,20 +169,24 @@ else:
 
 response = ""
 if not(cache_answer) and ((question_mode == "general") or (question_mode == "normal")):
-    prompt = [
-        {"role": "system", "content": "You are a command line translation tool for " +
-            platform + "." "You will answer the user's question with the correct unix command."},
-    ]
-    if (question_mode == "general"):  # Alternate prompt for general Q's
-        prompt = [
-            {"role": "system", "content": "You are a helpful assistant. Answer the user's question in the best way possible."},
-        ]
     temp_question = question
     if not("?" in question):
         temp_question = question + "?"  # GPT produces better results
         # if there's a question mark.
         # using a temp variable so the ? doesn't get cached
+
+    if (question_mode == "general"):
+        system_message = "You are a helpful assistant. Answer the user's question in the best way possible."
+    else:  # question_mode is "normal"
+        system_message = f"You are a command line translation tool for {platform}. You will answer the user's question with the correct unix command."
+
+    # Fetch previous prompts from the cache
+    previous_prompts = fetch_previous_prompts()
+
+    prompt = [{"role": "system", "content": system_message}] + previous_prompts
+
     prompt += [{"role": "user", "content": temp_question}]
+
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=prompt,
