@@ -140,6 +140,7 @@ if (question_mode == "shortcut"):
 else:
     cache_answer = checkQ(question)
 
+response = ""
 if not(cache_answer) and ((question_mode == "general") or (question_mode == "normal")):
     prompt = [
         {"role": "system", "content": "You are a command line translation tool for " +
@@ -159,14 +160,14 @@ if not(cache_answer) and ((question_mode == "general") or (question_mode == "nor
         model="gpt-3.5-turbo",
         messages=prompt,
         temperature=0,
-        max_tokens=500,
+        max_tokens=1000,
         top_p=1,
         frequency_penalty=0,
-        presence_penalty=0,
-        stop=["\n"]
+        presence_penalty=0
     )
     result = response.choices[0].message["content"]
     insertQ(question, result)
+
 else:
     result = cache_answer
     if not(question_mode == "shortcut"):
