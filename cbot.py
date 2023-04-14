@@ -7,14 +7,12 @@ import sys
 import sqlite3
 import pyperclip
 from dotenv import load_dotenv
+import time
+
 
 load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-# The recommended approach is to set the API_Key in an environmental
-# variable. If you don't want to set that up, you can uncomment this
-# line and add your key directly.
-# openai.api_key = "st-key-goes-here"
 
 global question
 question = ""
@@ -29,9 +27,8 @@ def initDB():
                    question TEXT,
                    answer TEXT,
                    count INTEGER DEFAULT 1,
-                   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)""")  # Add timestamp column
+                   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)""")
 
-    # Create conversations table
     cache.execute("""
                    CREATE TABLE IF NOT EXISTS conversations 
                    (id INTEGER PRIMARY KEY,
@@ -45,7 +42,6 @@ def closeDB():
 
 
 def checkQ(question_text):
-    sql = "SELECT id,answer,count FROM questions WHERE question =" + question_text
     answer = cache.execute(
         "SELECT id,answer,count FROM questions WHERE question = ?", (question_text,))
     answer = answer.fetchone()
@@ -59,24 +55,46 @@ def checkQ(question_text):
         return(False)
 
 
-def insertQ(question_text, answer_text):
-    answer = cache.execute(
-        "DELETE FROM questions WHERE question = ?", (question_text,))
-    answer = cache.execute(
-        "INSERT INTO questions (question,answer) VALUES (?,?)", (question_text, answer_text))
-
-    # Insert message history into conversations table
-    messages = [{"role": "user", "content": question_text},
-                {"role": "assistant", "content": answer_text}]
+def store_messages(messages):
+    messages_json = json.dumps(messages)
+    timestamp = int(time.time())
     cache.execute(
-        "INSERT INTO conversations (messages) VALUES (?)", (json.dumps(messages),))
+        "INSERT INTO conversations (messages, timestamp) VALUES (?, ?)", (
+            messages_json, timestamp)
+    )
+    cache.commit()
+
+
+def insertQ(question_text, answer_text):
+    # Delete the question if it already exists in the database
+    cache.execute("DELETE FROM questions WHERE question = ?", (question_text,))
+    cache.execute("INSERT INTO questions (question,answer) VALUES (?,?)",
+                  (question_text, answer_text))
+
+    # Get the previous message history
+    previous_prompts = fetch_previous_prompts()
+
+    # Add the user's message and the assistant's response to the message history
+    previous_prompts.append({"role": "user", "content": question_text})
+    previous_prompts.append({"role": "assistant", "content": answer_text})
+
+    # Insert the updated message history into the conversations table
+    cache.execute("INSERT INTO conversations (messages) VALUES (?)",
+                  (json.dumps(previous_prompts[-20:]),))
+
+# def insertQ(question_text, answer_text):
+#     answer = cache.execute(
+#         "DELETE FROM questions WHERE question = ?", (question_text,))
+#     answer = cache.execute(
+#         "INSERT INTO questions (question,answer) VALUES (?,?)", (question_text, answer_text))
+
+#     messages = [{"role": "user", "content": question_text},
+#                 {"role": "assistant", "content": answer_text}]
+#     store_messages(messages)
 
 
 def fetchQ():
     question = ""
-    # [cbot,-x,  What,is,the,date]  # execute the response
-    # [cbot,What,is, the,date]      # no quotes will work
-    # [cbot,What is the date]       # with quotes will work
     for a in range(1, len(sys.argv)):
         question = question + " " + sys.argv[a]
     question = question.strip()
@@ -84,7 +102,7 @@ def fetchQ():
 
 
 def parseOptions(question):
-    global question_mode    # modes are normal, shortcut and general
+    global question_mode
     global general_q
     global execute
     global clip
@@ -93,7 +111,7 @@ def parseOptions(question):
     execute = False
     clip = False
     question_mode = "normal"
-    if ("-h" in question) or (question == " "):  # Return basic help info
+    if ("-h" in question) or (question == " "):
         print("Cbot is a simple utility powered by GPT3")
         print("""
         Example usage:
@@ -105,19 +123,19 @@ def parseOptions(question):
         """)
         exit()
 
-    if ("-x" in question):      # Execute the command
+    if ("-x" in question):
         execute = True
         question = question.replace("-x ", "")
 
-    if ("-c" in question):      # Copy the command to clipboard
+    if ("-c" in question):
         clip = True
         question = question.replace("-c ", "")
 
-    if ("-g" in question):      # General question, not command prompt specific
+    if ("-g" in question):
         question_mode = "general"
         question = question.replace("-g ", "")
 
-    if ("-s" in question):         # Save the command as a shortcut
+    if ("-s" in question):
         question_mode = "shortcut"
         question = sys.argv[2]
         shortcut = sys.argv[3]
@@ -138,8 +156,6 @@ def fetch_previous_prompts():
     return previous_prompts
 
 
-# Detect the platform. This helps with platform specific paths
-# and system specific options for certain commands
 platform = sys.platform
 if platform == "darwin":
     platform = "Mac"
@@ -151,14 +167,8 @@ else:
 question = fetchQ()
 question = parseOptions(question)
 
-# If we change our training/prompts, just delete the cache and it'll
-# be recreated on future runs.
 home = expanduser("~")
 initDB()
-
-# check if we're saving a shortcut
-# then check if there's an aswer in our cache
-# then execute a GPT3 request as needed
 
 if (question_mode == "shortcut"):
     insertQ(question, shortcut)
@@ -171,16 +181,13 @@ response = ""
 if not(cache_answer) and ((question_mode == "general") or (question_mode == "normal")):
     temp_question = question
     if not("?" in question):
-        temp_question = question + "?"  # GPT produces better results
-        # if there's a question mark.
-        # using a temp variable so the ? doesn't get cached
+        temp_question = question + "?"
 
     if (question_mode == "general"):
         system_message = "You are a helpful assistant. Answer the user's question in the best way possible."
-    else:  # question_mode is "normal"
+    else:
         system_message = f"You are a command line translation tool for {platform}. You will answer the user's question with the correct unix command."
 
-    # Fetch previous prompts from the cache
     previous_prompts = fetch_previous_prompts()
 
     prompt = [{"role": "system", "content": system_message}] + previous_prompts
