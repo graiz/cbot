@@ -44,6 +44,35 @@ $> cbot -x How do I create a file test.txt
 
 ```
 
+## Interactive Mode 🆕
+
+Use the -i option for an interactive shell experience where you can execute commands conversationally:
+
+```
+$> cbot -i
+🤖 Cbot Interactive Mode
+Type your commands naturally. Type 'exit' or 'quit' to leave.
+
+Me> list files
+cbot> ls -la
+[files are listed]
+
+Me> create a directory called test
+cbot> mkdir test
+
+Me> change to that directory
+cbot> cd test
+
+Me> exit
+Goodbye!
+```
+
+**Features:**
+- Natural language command interface
+- Automatic execution with immediate output
+- Context-aware: remembers your previous commands
+- Perfect for exploring and learning command line operations
+
 ## Cbot Basics
 The application is a simple Python script that prompts GPT3 with a couple examples and the OS of the current system. This helps ensure that Linux, Mac, and Windows specific commands tend to be more accurate.  Cbot is based entirely on GPT3 and it's not perfect. The more examples it has, the better it gets however the more examples the more GPT3 may cost per request. If you find examples that improve output or correct mistakes, please feel free to contribute them. Future versions of GPT3 will allow training and fine tuning. 
 
