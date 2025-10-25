@@ -6,12 +6,12 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="cbot-command",
-    version="1.0.3",
+    version="1.1.2",
     author="Gregory Raiz",
     author_email="",
-    requirements=['openai', 'pyperclip'],
-    install_requires=['openai', 'pyperclip'],
-    description="Cbot is a simple python command line bot based on GPT3.",
+    py_modules=['cbot'],
+    install_requires=['openai>=2.0.0', 'pyperclip'],
+    description="Cbot is a command line assistant powered by GPT-5-mini with interactive shell mode.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/graiz/cbot/",
@@ -23,7 +23,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License"
     ],
     python_requires=">=3.6",
-    keywords ='terminal cbot openai gpt3 chatgpt',
+    keywords='terminal cbot openai gpt5-mini chatgpt interactive-shell command-line-assistant',
     entry_points={
                         'console_scripts': [
                                 'cbot=cbot:main',

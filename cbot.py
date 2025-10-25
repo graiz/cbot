@@ -185,8 +185,18 @@ Current request: {user_input}"""
 
                     # Execute the command (display in green)
                     print(f"{GREEN}cbot>{RESET} {command}")
+                except AttributeError as e:
+                    if "has no attribute 'responses'" in str(e):
+                        print(f"⚠️  Error: OpenAI library version too old. Please upgrade: pip install --upgrade 'openai>=2.0.0'")
+                    else:
+                        print(f"⚠️  Error: {e}")
+                    continue
                 except Exception as e:
-                    print(f"⚠️  Error calling API: {e}")
+                    error_msg = str(e)
+                    if "API key" in error_msg or "401" in error_msg:
+                        print(f"⚠️  Error: Invalid or missing OpenAI API key. Set OPENAI_API_KEY environment variable.")
+                    else:
+                        print(f"⚠️  Error calling API: {e}")
                     continue
 
             # Execute the command (whether from cache or API)
@@ -296,9 +306,23 @@ def main():
             )
             result = response.output_text.strip()
             insertQ(question, result)
+        except AttributeError as e:
+            if "has no attribute 'responses'" in str(e):
+                print(f"Error: Your OpenAI library version is too old.")
+                print(f"Please upgrade: pip install --upgrade 'openai>=2.0.0'")
+            else:
+                print(f"Error: {e}")
+            closeDB()
+            exit(1)
         except Exception as e:
-            print(f"Error calling OpenAI API: {e}")
-            print("Please check your internet connection and API key.")
+            error_msg = str(e)
+            if "API key" in error_msg or "Incorrect API key" in error_msg or "401" in error_msg:
+                print(f"Error: Invalid or missing OpenAI API key.")
+                print("Please set your OPENAI_API_KEY environment variable.")
+                print("Get your API key at: https://platform.openai.com/account/api-keys")
+            else:
+                print(f"Error calling OpenAI API: {e}")
+                print("Please check your internet connection.")
             closeDB()
             exit(1)
     else:

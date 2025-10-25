@@ -1,13 +1,13 @@
 # cbot
-Cbot is a command line tool that uses GPT-3 to assist users in finding the right command for any given task. With cbot, users can simply type in a brief description of what they want to do, and cbot will use GPT-3 to find the right command to accomplish the task. Cbot makes it easy for users to find the right command quickly, without having to spend time searching through documentation or scrolling through long lists of available commands.
+Cbot is a command line tool that uses GPT-5-mini to assist users in finding the right command for any given task. With cbot, users can simply type in a brief description of what they want to do, and cbot will use GPT-5-mini to find the right command to accomplish the task. Cbot makes it easy for users to find the right command quickly, without having to spend time searching through documentation or scrolling through long lists of available commands.
 
 
 
 ## Installation
 
-To install the cbot utility and set up your GPT-3 API key, follow these steps:
+To install the cbot utility and set up your OpenAI API key, follow these steps:
 1. Install cbot using the pip command: **pip install cbot-command**
-1. Get your GPT-3 API key from https://beta.openai.com/account/api-keys Add your API key to an environmental variable by running the following command, replacing your actual API key: **export OPENAI_API_KEY="YOUR_API_KEY"**
+1. Get your OpenAI API key from https://platform.openai.com/account/api-keys Add your API key to an environmental variable by running the following command, replacing your actual API key: **export OPENAI_API_KEY="YOUR_API_KEY"**
 1. If you're using the Bash shell, you can add the above export command to your .bashrc file in your home directory so that it is automatically run every time you open a new terminal. If you're using the Zsh shell, you can add it to your .zshrc file instead.
 
 Once you've completed these steps, cbot will be installed and ready to use. You can run the **cbot "search"** command to search for commands related to a particular topic.
@@ -74,11 +74,11 @@ Goodbye!
 - Perfect for exploring and learning command line operations
 
 ## Cbot Basics
-The application is a simple Python script that prompts GPT3 with a couple examples and the OS of the current system. This helps ensure that Linux, Mac, and Windows specific commands tend to be more accurate.  Cbot is based entirely on GPT3 and it's not perfect. The more examples it has, the better it gets however the more examples the more GPT3 may cost per request. If you find examples that improve output or correct mistakes, please feel free to contribute them. Future versions of GPT3 will allow training and fine tuning. 
+The application is a simple Python script that prompts GPT-5-mini with a couple examples and the OS of the current system. This helps ensure that Linux, Mac, and Windows specific commands tend to be more accurate. Cbot is based on OpenAI's GPT-5-mini model and continuously improves with usage through caching. If you find examples that improve output or correct mistakes, please feel free to contribute them. 
 
 # Advanced tricks...
 
-If you're feeling adventurous you can pass the command option **-x** to execute the command. Be careful as this will execute whatever is passed back from GPT3. Using this with simple things may be fine but this is not recommended with any actions that could be destructive.
+If you're feeling adventurous you can pass the command option **-x** to execute the command. Be careful as this will execute whatever is passed back from GPT-5-mini. Using this with simple things may be fine but this is not recommended with any actions that could be destructive.
 
 > **Note:** The **-x** option will go ahead and run the command returned without asking.  Proceed with caution, for added safety sudo commands will not be automatically run.
 
